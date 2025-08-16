@@ -5,13 +5,14 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Telegram WebApp Game</title>
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-      background-color: #f0f2f5;
+    body { 
+      font-family: Arial, sans-serif; 
+      display: flex; 
+      justify-content: center; 
+      align-items: center; 
+      height: 100vh; 
+      background-color: #f0f2f5; 
+      margin: 0;
     }
     .container {
       background-color: #fff;
@@ -19,6 +20,8 @@
       border-radius: 12px;
       box-shadow: 0 0 10px rgba(0,0,0,0.1);
       text-align: center;
+      width: 90%;
+      max-width: 400px;
     }
     .info {
       margin: 10px 0;
@@ -29,6 +32,17 @@
       font-size: 22px;
       color: green;
     }
+    button {
+      margin-top: 20px;
+      padding: 10px 20px;
+      font-size: 16px;
+      border:none;
+      border-radius:8px;
+      background-color:#4CAF50;
+      color:white;
+      cursor:pointer;
+    }
+    button:hover { background-color:#45a049; }
   </style>
 </head>
 <body>
@@ -38,30 +52,45 @@
   <div class="info">Name: <span id="name">Loading...</span></div>
   <div class="info">User ID: <span id="userid">Loading...</span></div>
   <div class="info">Game Balance: <span id="balance">0</span> Coins</div>
+  <button id="refresh">Refresh Balance</button>
 </div>
 
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 <script>
-  // Initialize Telegram Web App
   const tg = window.Telegram.WebApp;
   tg.ready();
 
   // Get user info
-  const user = tg.initDataUnsafe.user; // contains id, first_name, last_name, username
-
-  // Display Name
-  let fullName = user.first_name;
-  if(user.last_name) fullName += " " + user.last_name;
+  const user = tg.initDataUnsafe.user;
+  const fullName = user.first_name + (user.last_name ? " " + user.last_name : "");
   document.getElementById("name").textContent = fullName;
-
-  // Display User ID
   document.getElementById("userid").textContent = user.id;
 
-  // Example Game Balance (static for now, you can integrate with backend)
-  let balance = 500; 
-  document.getElementById("balance").textContent = balance;
+  // Backend URL (replace with your deployed backend)
+  const BACKEND_URL = "https://your-backend-url.com/balance"; // <--- change this
 
-  // Optional: Adjust height to Telegram WebApp window
+  async function getBalance() {
+    try {
+      const response = await fetch(BACKEND_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId: user.id })
+      });
+      const data = await response.json();
+      document.getElementById("balance").textContent = data.balance;
+    } catch (err) {
+      console.error(err);
+      document.getElementById("balance").textContent = "Error";
+    }
+  }
+
+  // Initial balance load
+  getBalance();
+
+  // Refresh button
+  document.getElementById("refresh").addEventListener("click", getBalance);
+
+  // Expand Telegram WebApp to full height
   tg.expand();
 </script>
 
